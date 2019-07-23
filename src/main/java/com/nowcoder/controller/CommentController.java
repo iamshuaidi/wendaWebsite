@@ -6,6 +6,7 @@ import com.nowcoder.async.EventType;
 import com.nowcoder.model.Comment;
 import com.nowcoder.model.EntityType;
 import com.nowcoder.model.HostHolder;
+import com.nowcoder.model.Question;
 import com.nowcoder.service.CommentService;
 import com.nowcoder.service.QuestionService;
 import com.nowcoder.util.WendaUtil;
@@ -57,9 +58,11 @@ public class CommentController {
 
             int count = commentService.getCommentCount(comment.getEntityId(), comment.getEntityType());
             questionService.updateCommentCount(comment.getEntityId(), count);
+            // 异步消息需要获取这个问题是谁提出来的，才能通知它
+            Question question = questionService.getById(questionId);
 
             eventProducer.fireEvent(new EventModel(EventType.COMMENT).setActorId(comment.getUserId())
-                    .setEntityId(questionId));
+                    .setEntityId(questionId).setEntityOwnerId(question.getUserId()));
 
         } catch (Exception e) {
             logger.error("增加评论失败" + e.getMessage());
